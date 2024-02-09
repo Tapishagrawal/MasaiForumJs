@@ -10,8 +10,6 @@ const postSchema = new Schema({
   },
   user_name: {
     type: String,
-    ref: 'User',
-    required: true
   },
   title: {
     type: String,
@@ -28,8 +26,7 @@ const postSchema = new Schema({
     required: true
   },
   media: {
-    type: [String],
-    default: []
+    type: String,
   },
   likes: {
     type: [{

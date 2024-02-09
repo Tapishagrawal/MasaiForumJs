@@ -56,8 +56,7 @@ userRouter.post("/login", async (req, res) => {
             });
         }
 
-        const user = await UserModel.findOne({ email });
-        console.log(user)
+        const user = await UserModel.findOne({ email });    
         if (!user) {
             return res.status(400).json({
                 status: "fail",

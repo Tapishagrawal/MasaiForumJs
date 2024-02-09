@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import SinglePostCard from "./SinglePostCard";
 import { useDispatch, useSelector } from "react-redux";
 import { handleGetAllData, handlePostNewPost } from "../redux/PostReducer/action";
-
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Posts() {
     const [createPostModel, setCreatePostModel] = useState(false);
     const [categoryModel, setCategoryModel] = useState(false)
     const [inputValues, setInputValue] = useState({ title: "", content: "" })
+    const [file, setFile] = useState("")
     const [category, setCategory] = useState("Select Category")
     const { token } = useSelector((store) => store.AuthReducer)
     const { postData } = useSelector((store) => store.PostReducer);
@@ -18,10 +19,16 @@ export default function Posts() {
         setCategoryModel(false);
     };
     const handleAddPost = () => {
-        const newPost = {
-            ...inputValues, category
-        }
-        dispatch(handlePostNewPost(token, newPost))
+        const formData = new FormData();
+        formData.append("title",inputValues.title)
+        formData.append("content",inputValues.content)
+        formData.append("category",category)
+        formData.append("media",file)
+        
+        dispatch(handlePostNewPost(token, formData, toast))
+        setInputValue({ title: "", content: "" })
+        setCategory("Select Category")
+        setFile("")
     }
     const handleChangeInput = (e) => {
         const { name, value } = e.target;
@@ -36,12 +43,16 @@ export default function Posts() {
     }, [])
     return (
         <div>
+            <Toaster
+                position="top-center"
+                reverseOrder={false}
+            />
             <div>
                 <button onClick={() => { setCreatePostModel(!createPostModel), setCategoryModel(false) }} className="bg-[#ff6916] text-white p-3 my-6 ml-4 rounded-md font-medium">{createPostModel ? "Close" : "Create Post"}</button>
                 <div className={`${createPostModel ? "min-h-80 translate-y-1 scale-y-100 opacity-100" : "h-0 opacity-0"} transition-all duration-300 pb-10`}>
                     {
                         createPostModel &&
-                        <div className="w-2/4">
+                        <div className="w-[550px]">
                             <div className="flex flex-col gap-2 mb-6">
                                 <label className="text-[#a2bdc3]">Title</label>
                                 <input onChange={handleChangeInput} name="title" value={inputValues.title} type="text" placeholder="Enter title..." className="bg-[#273540] p-3 rounded-md outline-none focus:outline-orange-200 text-[#a2bdc3] font-medium" />
@@ -50,7 +61,7 @@ export default function Posts() {
                                 <label className="text-[#a2bdc3]">Content</label>
                                 <textarea onChange={handleChangeInput} cols={5} name="content" value={inputValues.content} rows={5} placeholder="Enter content..." className="bg-[#273540] p-3 rounded-md outline-none focus:outline-orange-200 text-[#a2bdc3] font-medium" />
                             </div>
-                            <div className="my-3 flex gap-7">
+                            <div className="my-3 flex items-center gap-7">
                                 <div>
                                     <button onClick={() => { setCategoryModel(!categoryModel) }} className="bg-[#273540] text-white p-2 px-3 font-medium rounded-md">{category}</button>
                                     <div className={`relative ${categoryModel ? "opacity-100 translate-y-1 scale-y-100" : " scale-y-100  opacity-0"} transition-all duration-500`}>
@@ -68,15 +79,19 @@ export default function Posts() {
                                     </div>
                                 </div>
                                 <div>
-                                    <button onClick={handleAddPost} className="bg-[#ff6916] text-white p-2 px-3 rounded-md font-medium">Create Post</button>
+                                    <input type="file" onChange={(e) => setFile(e.target.files[0])} className="text-[#91b3c1]" />
                                 </div>
                             </div>
+                                <div>
+                                    <button onClick={handleAddPost} className="bg-[#ff6916] text-white p-2 px-3 rounded-md font-medium">Create Post</button>
+                                </div>
                         </div>
                     }
                 </div>
-                <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-5 w-full">
                     {
-                        postData?.map((post) => (
+                        postData&&
+                        postData.map((post) => (
                             <SinglePostCard key={post._id} {...post} />
                         ))
                     }

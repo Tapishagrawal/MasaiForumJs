@@ -1,26 +1,48 @@
 const express = require("express");
 const { auth } = require("../middleware/auth.middleware");
 const PostModel = require("../models/post.model");
-
+const cloudinary = require("cloudinary").v2;
 const postRouter = express.Router();
 
-postRouter.post("/create", auth, async (req, res) => {
-    req.body.user_id=req.body.user.userID
-    req.body.user_name=req.body.user.username
-    try {
-        let post = new PostModel(req.body)
-        await post.save()
-        res.status(200).send({ "data": post })
-    } catch (error) {
-        res.status(500).send({ "error": error })
-    }
-})
+cloudinary.config({
+    cloud_name: 'dtbkacycl',
+    api_key: '862145395919799',
+    api_secret: 'wNt_AWbvTWJFN09GDlDVKvWmHZo'
+});
 
-postRouter.get("/", auth, async(req,res)=>{
+postRouter.post("/create", auth, async (req, res) => {
+    req.body.user_id = req.body.user.userID
+    req.body.user_name = req.body.user.username
+    const file = req.files.media;
     try {
-        const data = await PostModel.find()
+        cloudinary.uploader.upload(file.tempFilePath, async (err, result) => {
+            if (result) {
+                const newPost = new PostModel({ ...req.body, media: result.url });
+                await newPost.save()
+                res.status(201).json({ "data": newPost });
+            }
+        })
+    } catch (error) {
+        res.status(500).send({ "error": error });
+    }
+});
+
+postRouter.get("/", auth, async (req, res) => {
+    let { category, title } = req.query;
+    category = category ? { category } : {}
+
+    let query = {};
+
+        if (title) {
+            query.title = { $regex: new RegExp(title, 'i') }; 
+        }
+    try {
+        const data = await PostModel.find(query)
+            .populate("user_id")
+            .exec();
         res.status(200).send({ "data": data })
     } catch (error) {
+        console.log(error)
         res.status(500).send({ "error": error })
     }
 })

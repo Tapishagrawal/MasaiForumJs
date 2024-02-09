@@ -11,7 +11,7 @@ export const reducer = (state = initState, { type, payload }) => {
             return { ...state, isLoading: true }
         }
         case POST_POST_SUCCESS: {
-            const updatedData = [...state.postData, payload]
+            const updatedData = [payload,...state.postData]
             return { ...state, isLoading: false, postData: updatedData }
         }
         case POST_POST_FAILIUR: {
@@ -21,7 +21,7 @@ export const reducer = (state = initState, { type, payload }) => {
             return { ...state, isLoading: true }
         }
         case POST_GET_SUCCESS: {
-            return { ...state, isLoading: false, postData: payload }
+            return { ...state, isLoading: false, postData: payload.reverse() }
         }
         case POST_GET_FAILIUR: {
             return { ...state, isLoading: false, isError: true }
